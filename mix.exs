@@ -22,7 +22,7 @@ defmodule PropTypes.Mixfile do
 
   def package do
     [
-      name: :tipo,
+      name: :prop_types,
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
       licenses: ["MIT"],
       maintainers: ["John Faucett", "Nathan Faucett"],
