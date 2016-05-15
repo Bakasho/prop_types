@@ -6,12 +6,14 @@ Property Type validations and checkers for elixir apps
 
 ```elixir
 
-checker_fn = PropTypes.define_prop_checker(%{
-	"username" => %{ :validators => [&PropTypes.string/3], :required => true},
-	"password" => %{ :validators => [&PropTypes.string/3], :required => true}
+checker = PropTypes.create_checker(%{
+  # %{ :validations => [PropTypes.string] :required => false }
+	"username" => PropTypes.optional(PropTypes.string),
+  # %{ :validations => [PropTypes.string] :required => true }
+	"password" => PropTypes.required(PropTypes.string)
 })
 
-checker_fn.(%{"username"})
+checker.(%{"username"})
 
 ```
 
@@ -30,5 +32,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def application do
           [applications: [:prop_types]]
         end
-
-

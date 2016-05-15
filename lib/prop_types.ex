@@ -1,73 +1,48 @@
 defmodule PropTypes do
 
-	import PropTypes.Funcs, only: [
-		create_primitive_type_checker: 2
-	]
+  def create_type_checker(validate), do: PropTypes.TypeChecker.create(validate)
+  def create_primitive_type_checker(expected_type), do: PropTypes.TypeChecker.create_primitive(expected_type)
 
-	def atom(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:atom, opts).(props, key)
-	end
+  def create_checker(prop_types, caller_name), do: PropTypes.TypeChecker.create_checker(prop_types, caller_name)
+  def create_checker(prop_types), do: PropTypes.TypeChecker.create_checker(prop_types)
 
-	def boolean(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:boolean, opts).(props, key)
-	end
+  def check(props, prop_types, caller_name), do: PropTypes.TypeChecker.check(props, prop_types, caller_name)
+  def check(props, prop_types), do: PropTypes.TypeChecker.check(props, prop_types)
 
-	def number(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:number, opts).(props, key)
-	end
+  def atom(), do: create_primitive_type_checker(:atom)
+  def boolean(), do: create_primitive_type_checker(:boolean)
+  def number(), do: create_primitive_type_checker(:number)
+  def integer(), do: create_primitive_type_checker(:integer)
+  def float(), do: create_primitive_type_checker(:float)
+  def string(), do: create_primitive_type_checker(:string)
+  def bitstring(), do: create_primitive_type_checker(:bitstring)
+  def function(), do: create_primitive_type_checker(:function)
+  def list(), do: create_primitive_type_checker(:list)
+  def map(), do: create_primitive_type_checker(:map)
+  def tuple(), do: create_primitive_type_checker(:tuple)
 
-	def integer(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:integer, opts).(props, key)
-	end
+  def implements(expected_interface) do
+    Enum.each(Map.keys(expected_interface), fn (prop_name) ->
+      if Tipo.map?(Map.get(expected_interface, prop_name)) == false do
+        raise (
+          "Invalid Function Interface for " <> prop_name <> " must be functions, " <>
+          "(props: Map, prop_name: String, caller_name: String) return array of errors, error, or null."
+        )
+      end
+    end)
 
-	def float(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:float, opts).(props, key)
-	end
+    create_type_checker(fn (props, prop_name, caller_name, _) ->
+      check(Map.get(props, prop_name), expected_interface, caller_name <> "." <> prop_name)
+    end)
+  end
 
-	def string(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:string, opts).(props, key)
-	end
+  def required(validations), do: %{
+      :validations => validations,
+      :required => true
+    }
 
-	def bitstring(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:bitstring, opts).(props, key)
-	end
-
-	def binary(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:binary, opts).(props, key)
-	end
-
-	def function(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:function, opts).(props, key)
-	end
-
-	def list(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:list, opts).(props, key)
-	end
-
-	def map(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:map, opts).(props, key)
-	end
-
-	def tuple(props, key, opts \\ :optional) do
-		create_primitive_type_checker(:tuple, opts).(props, key)
-	end
-	
-
-	defp check_props(definition, input) do
-		Enum.each(Map.keys(definition), fn(k) -> 
-			
-			cfg_m = Map.get(definition, k)
-			req = if cfg_m[:required], do: :required, else: :optional
-
-			Enum.each(cfg_m[:validators], fn(validator) -> 
-				validator.(input, k, req)
-			end)
-
-		end)
-	end
-
-	def define_prop_checker(definition) do
-		fn (input_params) -> check_props(definition, input_params) end
-	end
-
+  def optional(validations), do: %{
+      :validations => validations,
+      :required => false
+    }
 end
